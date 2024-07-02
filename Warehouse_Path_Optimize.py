@@ -4,6 +4,8 @@ from RRT_Utils import Tree_Node as Tree
 from RRT_Utils import Cost_Functions as Cost
 from RRT_Utils.Tree_Node import NearestCostSet, CheckPathToNode
 from Costco_Utils import Store_Map as SM
+from scipy.spatial import ConvexHull
+import math
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle, Circle
@@ -142,12 +144,31 @@ FullTree = []
 StartLocation = [0,0]
 NewNode = Tree.Node(StartLocation, 0, 0, "Root", 0)
 FullTree.append(NewNode)
-
-# Add Test 100 New Nodes
+ExploreBias = 0.1 # Greedy Explore 10 % of the time
+ExploreRadius = 30
+# Explore until ____ Nodes in Tree
 while(len(FullTree) < 750):
-    # Check if Node is In Aisles
-    Node_L = [(random.random()-0.5)*240, random.random()*120]
-    Node_O = random.random()*360
+    # Explore        
+    if len(FullTree) >= 50 and random.random() <= ExploreBias:
+        # Collect All Node Locations on Tree
+        AllPoints = []
+        for Node in FullTree:
+            AllPoints.append(Node.Location)
+        Hull = ConvexHull(AllPoints)
+        Vertices = Hull.vertices
+        
+        # Select a random vertex from the Convex Hull Polygon
+        NewVertices = Vertices.tolist()
+        RandomIndex = random.sample(NewVertices,1)
+        Point = AllPoints[RandomIndex[0]]
+        RandomAngle = random.random()*2*math.pi
+        RandomLength = random.random()*ExploreRadius # Explores within 15 ft of tested vertex
+        Node_L = [Point[0] + RandomLength*math.sin(RandomAngle), Point[1] + RandomLength*math.cos(RandomAngle)]
+        Node_O = random.random()*360
+    
+    else:
+        Node_L = [(random.random()-0.5)*240, random.random()*120]
+        Node_O = random.random()*360        
     
     DummyNode = Tree.Node(Node_L, Node_O, 0, "Dummy", 0)
     # Find Closest N Node in Tree To Target Point
@@ -161,7 +182,6 @@ while(len(FullTree) < 750):
         # Add Node to Tree
         ClosestTreeNode = Check[0]    
         NodeParent = FullTree[ClosestTreeNode]
-        
         NodeCost = Cost.CostToRoot(Node_L, NodeParent, FullTree)
         NewNode = Tree.Node(Node_L, Node_O, NodeCost, ClosestTreeNode, len(FullTree))
         FullTree.append(NewNode)

@@ -144,7 +144,7 @@ FullTree = []
 StartLocation = [0,0]
 NewNode = Tree.Node(StartLocation, 0, 0, "Root", 0)
 FullTree.append(NewNode)
-ExploreBias = 0.1 # Greedy Explore 10 % of the time
+ExploreBias = 0.05 # Greedy Explore 10 % of the time
 ExploreRadius = 30
 # Explore until ____ Nodes in Tree
 while(len(FullTree) < 750):
@@ -164,6 +164,18 @@ while(len(FullTree) < 750):
         RandomAngle = random.random()*2*math.pi
         RandomLength = random.random()*ExploreRadius # Explores within 15 ft of tested vertex
         Node_L = [Point[0] + RandomLength*math.sin(RandomAngle), Point[1] + RandomLength*math.cos(RandomAngle)]
+        # Bound Node_L so that i searches within the bounds of the store
+        if Node_L[0] > 120:
+            Node_L[0] = 120
+        
+        if Node_L[0] < -120:
+            Node_L[0] = -120
+            
+        if Node_L[1] > 120:
+            Node_L[1] = 120
+        
+        if Node_L[1] < 0:
+            Node_L[1] = 0
         Node_O = random.random()*360
     
     else:
@@ -213,8 +225,8 @@ for Node in FullTree:
         Start = FullTree[Parent].Location
         PathArray = np.linspace(Start,XY,100)
         ax.plot(PathArray[:,0],PathArray[:,1],'r', linewidth = .5)
-plt.xlim([-110,110])            
-plt.ylim([0,135])    
+plt.xlim([-130,130])            
+plt.ylim([-10,130])    
 plt.show()
 print(len(FullTree))  
 
